@@ -1,6 +1,6 @@
 package com.dee.zpzrs.core;
 
-public abstract class ZPZItem {
+public abstract class ZPZItem extends ZPZAtom{
 	
 	private String _itemId;
 	

@@ -3,15 +3,27 @@ package com.dee.zpzrs.dal;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.dee.zpzrs.core.ZPZAtom;
+
 public class DataPool {
 
-	private Map<String, Movie> _moviesPool;
-	private Map<String, Director> _directorPool;
-	private Map<String, User> _userPool;
+	private Map<String, Map<String, ZPZAtom>> _datapools;
 	
 	public DataPool(){
-		_moviesPool = new HashMap<String, Movie>();
-		_directorPool = new HashMap<String, Director>();
-		_userPool = new HashMap<String, User>();
+		_datapools = new HashMap<String, Map<String, ZPZAtom>>();
 	}
+	
+	public void newPool(String poolName, Map<String, ZPZAtom> pool){
+		_datapools.put(poolName, pool);
+	}
+	
+	public boolean isInPool(String poolName, String keyInPool){
+		return _datapools.get(poolName).containsKey(keyInPool);
+	}
+	
+	public void addElementToPool(String poolName, String elementKey, ZPZAtom elementValue){
+		_datapools.get(poolName).put(elementKey, elementValue);
+	}
+	
+	
 }

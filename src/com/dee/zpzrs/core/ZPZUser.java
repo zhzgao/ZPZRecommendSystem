@@ -1,6 +1,6 @@
 package com.dee.zpzrs.core;
 
-public abstract class ZPZUser {
+public abstract class ZPZUser extends ZPZAtom{
 
 	private String _userId;
 	
