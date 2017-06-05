@@ -31,10 +31,22 @@ public class MySQLHelper {
 		}
 	}
 	
+	/**
+	 * Execute a sql statement and return true if execution successful, false if execution false.
+	 * @param statement The sql statement in String type
+	 * @return True if execution successful, false if execution false.
+	 * @throws SQLException
+	 */
 	public boolean Execute(String statement) throws SQLException{
 		return _dbStatement.execute(statement);
 	}
 	
+	/**
+	 * Execute a sql statement and return the query result.
+	 * @param statement
+	 * @return A ResultSet hold the query result.
+	 * @throws SQLException
+	 */
 	public ResultSet ExecuteQuery(String statement) throws SQLException{
 		return _dbStatement.executeQuery(statement);
 	}
