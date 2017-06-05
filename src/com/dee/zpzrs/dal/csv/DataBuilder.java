@@ -2,6 +2,7 @@ package com.dee.zpzrs.dal.csv;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
@@ -13,7 +14,7 @@ import java.util.Map;
 
 public class DataBuilder {
 
-	private String _dataFileDir, _dataFileRootDir, _dataFileName;
+	private String _dataFileDir, _dataFileRootDir, _dataFileName, _dataTempFildDir, _dataResultFileDir;
 	private BufferedReader _InputData;
 	private BufferedReader _TempData;
 	private BufferedWriter _OutData;
@@ -24,6 +25,8 @@ public class DataBuilder {
 		_dataFileDir = dataFileDir;
 		_dataFileRootDir = dataFileDir.substring(0, dataFileDir.lastIndexOf('/')+1);
 		_dataFileName = dataFileDir.substring(dataFileDir.lastIndexOf('/')+1, dataFileDir.lastIndexOf('.'));
+		
+		
 		//System.out.println("[Tracing] data directory: " + dataFileDir);
 		try {
 			_InputData = new BufferedReader(new FileReader(dataFileDir));
@@ -38,6 +41,16 @@ public class DataBuilder {
 	}
 	
 	public void GroupDataBy(String fieldName) throws Exception{
+		
+		_dataTempFildDir = _dataFileRootDir + _dataFileName + "_" + fieldName + "_tmp.csv";
+		_dataResultFileDir = _dataFileRootDir + _dataFileName + "_" + fieldName + "_s.csv";
+		//#Check existence of result file and temporary file.
+		//#Delect files if exist.
+		File fileTemp=new File(_dataTempFildDir);
+		File fileResult=new File(_dataResultFileDir);
+		if(fileTemp.exists()) fileTemp.delete();
+		if(fileResult.exists()) fileResult.delete();
+		
 		int fieldIndex = fields.get(fieldName);
 		//System.out.println("[Tracing] " + fieldName + " index: " + fieldIndex);
 		int groupIndexPtr = 1;
@@ -45,10 +58,12 @@ public class DataBuilder {
 		String temp;
 		String[] tempSplited;
 		
+		int jobCounter = 0;
 		BuildFields();
 		while((temp=_InputData.readLine())!= null){
+			jobCounter ++;
 			tempSplited = temp.split(",");
-			System.out.println("[Tracing]Processing data: " + tempSplited[fieldIndex]);
+			System.out.println("[Tracing]Processing job: " + jobCounter + " at " + tempSplited[fieldIndex]);
 			if(groups.containsKey(tempSplited[fieldIndex])){
 				InsertData(tempSplited, groups.get(tempSplited[fieldIndex]), fieldIndex);
 			}else{
@@ -63,17 +78,18 @@ public class DataBuilder {
 	
 	private void InsertDataAtLast(String record) throws Exception{
 		FileOutputStream out = null;
-		out = new FileOutputStream(_dataFileRootDir + _dataFileName + "_s.csv", true);
+		out = new FileOutputStream(_dataResultFileDir, true);
 		//out.write("\n".getBytes());
 		out.write(record.getBytes());
+		out.write("\n".getBytes());
 		out.close();
 		UpdateTempData();
 	}
 	
 	private void InsertData(String[] inValues, int recordIndex, int fieldIndex) throws Exception{
 		//System.out.println("[Tracing]InsertData is called.");
-		_OutData = new BufferedWriter(new FileWriter(_dataFileRootDir + _dataFileName + "_s.csv"));
-		_TempData = new BufferedReader(new FileReader(_dataFileRootDir + _dataFileName + "_tmp.csv"));
+		_OutData = new BufferedWriter(new FileWriter(_dataResultFileDir));
+		_TempData = new BufferedReader(new FileReader(_dataTempFildDir));
 		String temp, rebuildRecord;
 		String[] tempSplited;
 		int linePtr = 0;
@@ -103,7 +119,7 @@ public class DataBuilder {
 	
 	private void BuildFields() throws Exception{
 		FileOutputStream out = null;
-		out = new FileOutputStream(_dataFileRootDir + _dataFileName + "_s.csv", true);
+		out = new FileOutputStream(_dataResultFileDir, true);
 		//out.write("\n".getBytes());
 		out.write(RebuildRecord(_fieldsArray, ",").getBytes());
 		out.write("\n".getBytes());
@@ -132,8 +148,8 @@ public class DataBuilder {
 		FileInputStream in = null;
 		FileOutputStream out = null;
 		
-		in = new FileInputStream(_dataFileRootDir + _dataFileName + "_s.csv");
-		out = new FileOutputStream(_dataFileRootDir + _dataFileName + "_tmp.csv");
+		in = new FileInputStream(_dataResultFileDir);
+		out = new FileOutputStream(_dataTempFildDir);
 		
 		FileChannel fcIn = in.getChannel();  
         FileChannel fcOut = out.getChannel();  
