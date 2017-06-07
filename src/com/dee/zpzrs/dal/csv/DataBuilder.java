@@ -14,7 +14,7 @@ import java.util.Map;
 
 public class DataBuilder {
 
-	private String _dataFileDir, _dataFileRootDir, _dataFileName, _dataTempFildDir, _dataResultFileDir;
+	private String _dataFileRootDir, _dataFileName, _dataTempFildDir, _dataResultFileDir;
 	private BufferedReader _InputData;
 	private BufferedReader _TempData;
 	private BufferedWriter _OutData;
@@ -22,7 +22,6 @@ public class DataBuilder {
 	private Map<String, Integer> fields, groups;
 	
 	public DataBuilder(String dataFileDir){
-		_dataFileDir = dataFileDir;
 		_dataFileRootDir = dataFileDir.substring(0, dataFileDir.lastIndexOf('/')+1);
 		_dataFileName = dataFileDir.substring(dataFileDir.lastIndexOf('/')+1, dataFileDir.lastIndexOf('.'));
 		
@@ -72,8 +71,37 @@ public class DataBuilder {
 				groupIndexPtr++;
 				InsertDataAtLast(temp);
 			}
-		}
+		}	
+	}
+	
+	public void BucketGroupDataBy(String fieldName) throws Exception{
+		_dataResultFileDir = _dataFileRootDir + _dataFileName + "_" + fieldName + "_s.csv";
 		
+		System.out.println("[Tracing]Cleaning temp folder");
+		ClearTempFolder();
+		
+		int fieldIndex = fields.get(fieldName);
+		int groupIndexPtr = 1;
+		
+		String temp;
+		String[] tempSplited;
+		
+		int jobCounter = 0;
+		BuildFields();
+		while((temp=_InputData.readLine())!= null){
+			jobCounter ++;
+			tempSplited = temp.split(",");
+			System.out.println("[Tracing]Processing job: " + jobCounter + " at " + tempSplited[fieldIndex]);
+			if(groups.containsKey(tempSplited[fieldIndex])){
+				UpdateBucket(tempSplited, groups.get(tempSplited[fieldIndex]), fieldIndex);
+			}else{
+				//System.out.println("[Tracing]InserDataAtLast is called.");
+				groups.put(tempSplited[fieldIndex], groupIndexPtr);
+				groupIndexPtr++;
+				CreateBucket(temp, groups.get(tempSplited[fieldIndex]));
+			}
+		}
+		MergeBuckets();
 	}
 	
 	private void InsertDataAtLast(String record) throws Exception{
@@ -117,6 +145,39 @@ public class DataBuilder {
 		UpdateTempData();
 	}
 	
+	private void CreateBucket(String record, int bucketId) throws Exception{
+		FileOutputStream out = null;
+		out = new FileOutputStream(_dataFileRootDir + "/temp/" + _dataFileName + "_" + bucketId + "_tmp.csv", true);
+		//out.write("\n".getBytes());
+		out.write(record.getBytes());
+		out.close();
+	}
+	
+	private void UpdateBucket(String[] inValues, int bucketId, int fieldIndex) throws Exception{
+		_TempData = new BufferedReader(new FileReader(_dataFileRootDir + "/temp/" + _dataFileName + "_" + bucketId + "_tmp.csv"));
+		String[] tempSplited = _TempData.readLine().split(",");
+		_TempData.close();
+		for(int i=0; i<tempSplited.length; i++){
+			if(i!=fieldIndex){
+				tempSplited[i] = tempSplited[i] + "|" + inValues[i];
+			}
+		}
+		String rebuildRecord = RebuildRecord(tempSplited, ",");
+		_OutData = new BufferedWriter(new FileWriter(_dataFileRootDir + "/temp/" + _dataFileName + "_" + bucketId + "_tmp.csv"));
+		_OutData.write(rebuildRecord);
+		_OutData.close();
+	}
+	
+	private void MergeBuckets() throws Exception{
+		_OutData = new BufferedWriter(new FileWriter(_dataResultFileDir));
+		for(Map.Entry<String, Integer> entry : groups.entrySet()){
+			_TempData = new BufferedReader(new FileReader(_dataFileRootDir + "/temp/" + _dataFileName + "_" + entry.getValue() + "_tmp.csv"));
+			_OutData.write(_TempData.readLine() + "\n");
+			_TempData.close();
+		}
+		_OutData.close();
+	}
+	
 	private void BuildFields() throws Exception{
 		FileOutputStream out = null;
 		out = new FileOutputStream(_dataResultFileDir, true);
@@ -124,7 +185,6 @@ public class DataBuilder {
 		out.write(RebuildRecord(_fieldsArray, ",").getBytes());
 		out.write("\n".getBytes());
 		out.close();
-		UpdateTempData();
 	}
 	
 	private void MapFields(){
@@ -159,6 +219,12 @@ public class DataBuilder {
 		out.close();
 		fcIn.close();
 		fcOut.close();
+	}
+	
+	public void ClearTempFolder(){
+		FileOperator fo = new FileOperator();
+		fo.CreateDirectory("data/temp");
+		fo.DeleteAllFiles("data/temp");
 	}
 	
 	public void CloseAllBuffer() throws IOException{
