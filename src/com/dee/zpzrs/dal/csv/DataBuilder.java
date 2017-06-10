@@ -21,6 +21,10 @@ public class DataBuilder {
 	private String[] _fieldsArray;
 	private Map<String, Integer> fields, groups;
 	
+	/**
+	 * Use to access csv data file and build new quick access data structure in csv type.
+	 * @param dataFileDir the directory of the csv data file.
+	 */
 	public DataBuilder(String dataFileDir){
 		_dataFileRootDir = dataFileDir.substring(0, dataFileDir.lastIndexOf('/')+1);
 		_dataFileName = dataFileDir.substring(dataFileDir.lastIndexOf('/')+1, dataFileDir.lastIndexOf('.'));
@@ -39,6 +43,11 @@ public class DataBuilder {
 		} 
 	}
 	
+	/**
+	 * Group the data by a main field. Use really slow algorithm but cause very low complexity of the file system.
+	 * @param fieldName The name of the main field.
+	 * @throws Exception
+	 */
 	public void GroupDataBy(String fieldName) throws Exception{
 		
 		_dataTempFildDir = _dataFileRootDir + _dataFileName + "_" + fieldName + "_tmp.csv";
@@ -74,6 +83,11 @@ public class DataBuilder {
 		}	
 	}
 	
+	/**
+	 * Group the data by main field. Use bucket algorithm to implement the efficiency of grouping process but increase the complexity of file system.
+	 * @param fieldName The name of the main field.
+	 * @throws Exception
+	 */
 	public void BucketGroupDataBy(String fieldName) throws Exception{
 		_dataResultFileDir = _dataFileRootDir + _dataFileName + "_" + fieldName + "_s.csv";
 		
@@ -87,7 +101,7 @@ public class DataBuilder {
 		String[] tempSplited;
 		
 		int jobCounter = 0;
-		BuildFields();
+		
 		while((temp=_InputData.readLine())!= null){
 			jobCounter ++;
 			tempSplited = temp.split(",");
@@ -131,7 +145,7 @@ public class DataBuilder {
 				tempSplited = temp.split(",");
 				for(int i=0; i<tempSplited.length; i++){
 					if(i!=fieldIndex){
-						tempSplited[i] = tempSplited[i] + "|" + inValues[i];
+						tempSplited[i] = tempSplited[i] + "#" + inValues[i];
 					}
 				}
 				rebuildRecord = RebuildRecord(tempSplited, ",");
@@ -159,7 +173,7 @@ public class DataBuilder {
 		_TempData.close();
 		for(int i=0; i<tempSplited.length; i++){
 			if(i!=fieldIndex){
-				tempSplited[i] = tempSplited[i] + "|" + inValues[i];
+				tempSplited[i] = tempSplited[i] + "#" + inValues[i];
 			}
 		}
 		String rebuildRecord = RebuildRecord(tempSplited, ",");
@@ -170,6 +184,7 @@ public class DataBuilder {
 	
 	private void MergeBuckets() throws Exception{
 		_OutData = new BufferedWriter(new FileWriter(_dataResultFileDir));
+		_OutData.write(RebuildRecord(_fieldsArray, ",") + "\n");
 		for(Map.Entry<String, Integer> entry : groups.entrySet()){
 			_TempData = new BufferedReader(new FileReader(_dataFileRootDir + "/temp/" + _dataFileName + "_" + entry.getValue() + "_tmp.csv"));
 			_OutData.write(_TempData.readLine() + "\n");
@@ -221,12 +236,19 @@ public class DataBuilder {
 		fcOut.close();
 	}
 	
+	/**
+	 * Remove all stuff in the temp folder.
+	 */
 	public void ClearTempFolder(){
 		FileOperator fo = new FileOperator();
 		fo.CreateDirectory("data/temp");
 		fo.DeleteAllFiles("data/temp");
 	}
 	
+	/**
+	 * Remember to close the buffer after the data access job.
+	 * @throws IOException
+	 */
 	public void CloseAllBuffer() throws IOException{
 		_InputData.close();
 	}
