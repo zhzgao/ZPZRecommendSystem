@@ -61,7 +61,6 @@ public class DataBuilder {
 		
 		int fieldIndex = fields.get(fieldName);
 		//System.out.println("[Tracing] " + fieldName + " index: " + fieldIndex);
-		int groupIndexPtr = 1;
 		
 		String temp;
 		String[] tempSplited;
@@ -76,8 +75,7 @@ public class DataBuilder {
 				InsertData(tempSplited, groups.get(tempSplited[fieldIndex]), fieldIndex);
 			}else{
 				//System.out.println("[Tracing]InserDataAtLast is called.");
-				groups.put(tempSplited[fieldIndex], groupIndexPtr);
-				groupIndexPtr++;
+				groups.put(tempSplited[fieldIndex], Integer.parseInt(tempSplited[fieldIndex]));
 				InsertDataAtLast(temp);
 			}
 		}	
@@ -95,7 +93,6 @@ public class DataBuilder {
 		ClearTempFolder();
 		
 		int fieldIndex = fields.get(fieldName);
-		int groupIndexPtr = 1;
 		
 		String temp;
 		String[] tempSplited;
@@ -110,8 +107,7 @@ public class DataBuilder {
 				UpdateBucket(tempSplited, groups.get(tempSplited[fieldIndex]), fieldIndex);
 			}else{
 				//System.out.println("[Tracing]InserDataAtLast is called.");
-				groups.put(tempSplited[fieldIndex], groupIndexPtr);
-				groupIndexPtr++;
+				groups.put(tempSplited[fieldIndex], Integer.parseInt(tempSplited[fieldIndex]));
 				CreateBucket(temp, groups.get(tempSplited[fieldIndex]));
 			}
 		}
