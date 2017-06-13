@@ -5,7 +5,7 @@ import java.util.Map;
 
 public class DataSession {
 
-	private Map<String, Map<String, String>> _dataRecordSession;
+	public Map<String, Map<String, String>> _dataRecordSession;
 	private Map<String, String[]> _dataRecordMidSession;
 	private Map<String, Integer> _fieldsIndex;
 	private String[] _fields;
@@ -40,8 +40,16 @@ public class DataSession {
 		return _dataRecordSession.get(fieldKey).get(recordKey);
 	}
 	
+	public boolean ContainsRecord(String fieldKey, String recordKey){
+		return _dataRecordSession.get(fieldKey).containsKey(recordKey);
+	}
+	
 	public String[] GetFields(){
 		return _fields;
+	}
+	
+	public int GetFiledsIndex(String FieldName){
+		return _fieldsIndex.get(FieldName);
 	}
 	
 	public String[] GetARow(int rowIndex){

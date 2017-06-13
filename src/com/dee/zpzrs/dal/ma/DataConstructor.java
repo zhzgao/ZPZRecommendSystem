@@ -1,6 +1,7 @@
 package com.dee.zpzrs.dal.ma;
 
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Map;
 
 public class DataConstructor {
@@ -30,9 +31,9 @@ public class DataConstructor {
 		int sessionFiledsPtr = 0;
 		for(int i=0; i<_fields.length; i++){
 			if(!_fields[i].equals(_mainField)){
-				_dataRecordSession.put(_fields[i], new HashMap<String, String>());
+				_dataRecordSession.put(_fields[i], new IdentityHashMap<String, String>());//use IdentityHashMap to avoid same data overwrite.
 				_dataRecordMidSession.put(_fields[i], SplitDataBy("#", dataFieldRecords[i]));
-				_fieldsIndex.put(_fields[i], i);
+				_fieldsIndex.put(_fields[i], sessionFiledsPtr);
 				_sessionFields[sessionFiledsPtr] = _fields[i];
 				sessionFiledsPtr++;
 			}else{
@@ -56,7 +57,7 @@ public class DataConstructor {
 				if(relations.containsKey(entry.getKey())){
 					_dataRecordSession.get(entry.getKey()).put(entry.getValue()[i], _dataRecordMidSession.get(relations.get(entry.getKey()))[i]);
 				}else{
-					_dataRecordSession.get(entry.getKey()).put(entry.getValue()[i], entry.getValue()[i]);
+					_dataRecordSession.get(entry.getKey()).put(entry.getValue()[i], String.valueOf(i));
 				}
 			}
 		}
