@@ -53,7 +53,7 @@ public class DataConstructor {
 		
 		for(int i=0; i<_fieldRecordSize; i++){
 			for(Map.Entry<String, String[]> entry : _dataRecordMidSession.entrySet()){
-				//System.out.println("[Tracing]Entry key is: " + entry.getKey());
+				//System.out.println("[Tracing]Entry key is: " + entry.getKey() + ", lenth is:" + entry.getValue().length);
 				if(relations.containsKey(entry.getKey())){
 					_dataRecordSession.get(entry.getKey()).put(entry.getValue()[i], _dataRecordMidSession.get(relations.get(entry.getKey()))[i]);
 				}else{
